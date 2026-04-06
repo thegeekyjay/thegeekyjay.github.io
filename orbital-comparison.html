@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apollo 13 vs Artemis 2 — Orbital Comparison</title>
+<title>Apollo 11, Apollo 13 &amp; Artemis 2 — Orbital Comparison</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -97,6 +97,14 @@
     flex-shrink: 0;
   }
 
+  .legend-item.apollo11 {
+    border: 1px solid rgba(50,210,120,0.35);
+    background: rgba(50,210,120,0.05);
+  }
+
+  .apollo11 .legend-dot { background: #32d278; }
+  .apollo11 .legend-header { color: #32d278; }
+
   .apollo .legend-dot { background: #ffa032; }
   .artemis .legend-dot { background: #a078ff; }
   .apollo .legend-header { color: #ffa032; }
@@ -156,7 +164,7 @@
 </head>
 <body>
 
-<h1>Apollo 13 &nbsp;vs&nbsp; Artemis 2</h1>
+<h1>Apollo 11 &nbsp;&middot;&nbsp; Apollo 13 &nbsp;&middot;&nbsp; Artemis 2</h1>
 <div class="subtitle">Lunar Trajectory Comparison &mdash; Not to Scale</div>
 
 <div class="canvas-wrap">
@@ -169,6 +177,15 @@
 </div>
 
 <div class="legend">
+  <div class="legend-item apollo11">
+    <div class="legend-header"><span class="legend-dot"></span>Apollo 11 &mdash; 1969</div>
+    <div class="legend-body">
+      Standard translunar trajectory with lunar orbit insertion.
+      Entered a <span class="stat">~111 × 313 km</span> elliptical orbit around the Moon.<br>
+      Not a free-return — required engine burn to enter &amp; exit lunar orbit.<br>
+      Mission duration: <span class="stat">~8.1 days</span>
+    </div>
+  </div>
   <div class="legend-item apollo">
     <div class="legend-header"><span class="legend-dot"></span>Apollo 13 &mdash; 1970</div>
     <div class="legend-body">
@@ -335,7 +352,37 @@ const A2 = {
   ]
 };
 
-// ── Draw a bezier segment with a dashed/solid style ──────────────────────────
+// Apollo 11 — translunar coast + lunar orbit insertion (elliptical orbit around Moon)
+// Approaches Moon directly, enters orbit, loops around, departs back to Earth
+const A11 = {
+  // Outbound — slightly inside A13, approaches Moon near side
+  out: [
+    { x: E.x, y: E.y - E.r },
+    { x: 340, y: H * 0.13 },
+    { x: 580, y: H * 0.18 },
+    { x: M.x - M.r - 2, y: M.y - 18 }
+  ],
+  // Lunar orbit — tight ellipse around Moon (near side visible)
+  orbit1: [
+    { x: M.x - M.r - 2, y: M.y - 18 },
+    { x: M.x - 55, y: M.y - 55 },
+    { x: M.x + 55, y: M.y - 55 },
+    { x: M.x + M.r + 2, y: M.y - 10 }
+  ],
+  orbit2: [
+    { x: M.x + M.r + 2, y: M.y - 10 },
+    { x: M.x + 55, y: M.y + 48 },
+    { x: M.x - 55, y: M.y + 48 },
+    { x: M.x - M.r - 2, y: M.y + 18 }
+  ],
+  // Return leg
+  ret: [
+    { x: M.x - M.r - 2, y: M.y + 18 },
+    { x: 580, y: H * 0.82 },
+    { x: 340, y: H * 0.87 },
+    { x: E.x, y: E.y + E.r }
+  ]
+};
 function drawBezierSegment(pts, color, dash, alpha = 1, lineWidth = 1.8) {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -429,17 +476,19 @@ function drawAnnotation(x, y, text, color) {
 }
 
 // ── Apollo 13 segments in order ───────────────────────────────────────────────
+const a11Segments = [A11.out, A11.orbit1, A11.orbit2, A11.ret];
 const a13Segments = [A13.out, A13.around, A13.ret];
 const a2Segments  = [A2.out, A2.around, A2.around2, A2.ret];
 
 // ── Animation state ───────────────────────────────────────────────────────────
 let animating = false;
-let t13 = 1, t2 = 1;   // 1 = fully drawn static
+let t11 = 1, t13 = 1, t2 = 1;   // 1 = fully drawn static
 let startTime = null;
 const DURATION = 7000;  // ms for full traversal
 
 // Speed: Artemis is ~1.69x longer journey so animate proportionally
 const A2_SPEED = 0.72;  // relative speed factor (A2 goes further, takes longer)
+const A11_SPEED = 0.88; // Apollo 11 slightly shorter than A13
 
 function render(timestamp) {
   ctx.clearRect(0, 0, W, H);
@@ -448,15 +497,32 @@ function render(timestamp) {
   if (animating) {
     if (!startTime) startTime = timestamp;
     const elapsed = timestamp - startTime;
+    t11 = Math.min(1, elapsed / (DURATION * A11_SPEED));
     t13 = Math.min(1, elapsed / DURATION);
     t2  = Math.min(1, elapsed / (DURATION / A2_SPEED));
   }
 
   // ── Draw trajectories ──────────────────────────────────────────────────────
+  // Apollo 11 — green dotted
+  drawTrajectoryPartial(a11Segments, '#28b864', [3, 4], t11, 1.6);
   // Apollo 13 — orange dashed
   drawTrajectoryPartial(a13Segments, '#e8820a', [6, 4], t13, 1.6);
   // Artemis 2 — violet solid
   drawTrajectoryPartial(a2Segments, '#9060ee', [], t2, 1.8);
+
+  // ── Apollo 11 lunar orbit label ───────────────────────────────────────────
+  if (t11 >= 0.35) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(40,184,100,0.3)';
+    ctx.setLineDash([3,3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(M.x - 56, M.y - 52);
+    ctx.lineTo(M.x - 80, M.y - 70);
+    ctx.stroke();
+    ctx.restore();
+    drawAnnotation(M.x - 160, M.y - 74, 'lunar orbit ~111 km', '#28b864');
+  }
 
   // ── Apoapsis markers ──────────────────────────────────────────────────────
   if (t13 > 0.45 && t13 < 0.6) {
@@ -494,7 +560,11 @@ function render(timestamp) {
   }
 
   // ── Spacecraft positions when animating ───────────────────────────────────
-  if (animating || (t13 < 1 || t2 < 1)) {
+  if (animating || (t11 < 1 || t13 < 1 || t2 < 1)) {
+    if (t11 > 0 && t11 < 1) {
+      const pos11 = getPositionOnTrajectory(a11Segments, t11);
+      drawCraft(pos11, '#32d278');
+    }
     if (t13 > 0 && t13 < 1) {
       const pos13 = getPositionOnTrajectory(a13Segments, t13);
       drawCraft(pos13, '#ffa040');
@@ -509,6 +579,14 @@ function render(timestamp) {
   drawEarth();
 
   // ── Labels ────────────────────────────────────────────────────────────────
+  ctx.font = 'bold 11px "Orbitron", sans-serif';
+  ctx.fillStyle = '#28b864';
+  ctx.textAlign = 'center';
+  ctx.fillText('APOLLO 11', W / 2, 30);
+  ctx.font = '9px "Share Tech Mono"';
+  ctx.fillStyle = '#1a6040';
+  ctx.fillText('1969 · lunar orbit insertion', W / 2, 46);
+
   ctx.font = 'bold 11px "Orbitron", sans-serif';
   ctx.fillStyle = '#e8820a';
   ctx.textAlign = 'left';
@@ -526,7 +604,7 @@ function render(timestamp) {
   ctx.textAlign = 'right';
   ctx.fillText('2025 · hybrid free-return', W - 30, 46);
 
-  if (animating && t13 >= 1 && t2 >= 1) {
+  if (animating && t11 >= 1 && t13 >= 1 && t2 >= 1) {
     animating = false;
     document.getElementById('btnPlay').classList.remove('active');
   }
@@ -541,7 +619,7 @@ render(0);
 
 document.getElementById('btnPlay').addEventListener('click', () => {
   if (!animating) {
-    t13 = 0; t2 = 0; startTime = null;
+    t11 = 0; t13 = 0; t2 = 0; startTime = null;
     animating = true;
     document.getElementById('btnPlay').classList.add('active');
     requestAnimationFrame(render);
@@ -550,7 +628,7 @@ document.getElementById('btnPlay').addEventListener('click', () => {
 
 document.getElementById('btnReset').addEventListener('click', () => {
   animating = false;
-  t13 = 1; t2 = 1; startTime = null;
+  t11 = 1; t13 = 1; t2 = 1; startTime = null;
   document.getElementById('btnPlay').classList.remove('active');
   render(0);
 });
