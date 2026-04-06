@@ -1,2 +1,2 @@
 # thegeekyjay.github.io
-For Article I create
+For articles I create with claude
