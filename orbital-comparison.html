@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apollo 13 vs Artemis 2 — Orbital Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #010409;
+    color: #e8eaf0;
+    font-family: 'Share Tech Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(14px, 2.5vw, 22px);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c8d8f0;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: #5a6a8a;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid #1a2540;
+    border-radius: 4px;
+    background: #010409;
+  }
+
+  .legend {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 340px;
+    padding: 14px 18px;
+    border-radius: 4px;
+  }
+
+  .legend-item.apollo {
+    border: 1px solid rgba(255,160,50,0.35);
+    background: rgba(255,160,50,0.05);
+  }
+
+  .legend-item.artemis {
+    border: 1px solid rgba(160,120,255,0.35);
+    background: rgba(160,120,255,0.05);
+  }
+
+  .legend-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .apollo .legend-dot { background: #ffa032; }
+  .artemis .legend-dot { background: #a078ff; }
+  .apollo .legend-header { color: #ffa032; }
+  .artemis .legend-header { color: #a078ff; }
+
+  .legend-body {
+    font-size: 11px;
+    color: #8090b0;
+    line-height: 1.7;
+  }
+
+  .stat {
+    color: #c8d8f0;
+    font-weight: bold;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  button {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    padding: 8px 18px;
+    border-radius: 3px;
+    border: 1px solid;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  #btnPlay {
+    border-color: #3a5080;
+    color: #7090c0;
+  }
+  #btnPlay:hover, #btnPlay.active {
+    border-color: #7090c0;
+    color: #c8d8f0;
+    background: rgba(70,100,160,0.15);
+  }
+
+  #btnReset {
+    border-color: #2a3a50;
+    color: #4a6080;
+  }
+  #btnReset:hover {
+    border-color: #4a6080;
+    color: #8090b0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Apollo 13 &nbsp;vs&nbsp; Artemis 2</h1>
+<div class="subtitle">Lunar Trajectory Comparison &mdash; Not to Scale</div>
+
+<div class="canvas-wrap">
+  <canvas id="c" width="860" height="540"></canvas>
+</div>
+
+<div class="controls">
+  <button id="btnPlay">&#9654; Animate</button>
+  <button id="btnReset">&#8635; Reset</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item apollo">
+    <div class="legend-header"><span class="legend-dot"></span>Apollo 13 &mdash; 1970</div>
+    <div class="legend-body">
+      Free-return trajectory. Looped around the far side of the Moon at
+      <span class="stat">~254 km</span> altitude after an O₂ tank explosion forced abort.<br>
+      Max distance from Earth: <span class="stat">~400,171 km</span><br>
+      Mission duration: <span class="stat">~5.9 days</span>
+    </div>
+  </div>
+  <div class="legend-item artemis">
+    <div class="legend-header"><span class="legend-dot"></span>Artemis 2 &mdash; 2025 (planned)</div>
+    <div class="legend-body">
+      Hybrid free-return trajectory. Swings <span class="stat">~9,200 km</span> beyond the Moon —
+      the farthest crewed flight ever attempted.<br>
+      Max distance from Earth: <span class="stat">~457,000 km</span><br>
+      Mission duration: <span class="stat">~10 days</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// Layout — Earth left-centre, Moon right-centre
+const E = { x: 195, y: H / 2, r: 28 };  // Earth
+const M = { x: 620, y: H / 2, r: 13 };  // Moon
+
+// ── Star field ──────────────────────────────────────────────────────────────
+const stars = [];
+for (let i = 0; i < 260; i++) {
+  stars.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    r: Math.random() * 1.2,
+    a: 0.2 + Math.random() * 0.7
+  });
+}
+
+function drawStars() {
+  for (const s of stars) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,215,255,${s.a})`;
+    ctx.fill();
+  }
+}
+
+// ── Earth ───────────────────────────────────────────────────────────────────
+function drawEarth() {
+  // Glow
+  const glow = ctx.createRadialGradient(E.x, E.y, E.r * 0.5, E.x, E.y, E.r * 3);
+  glow.addColorStop(0, 'rgba(40,100,200,0.18)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(E.x, E.y, E.r * 3, 0, Math.PI * 2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // Body
+  const eg = ctx.createRadialGradient(E.x - 8, E.y - 8, 4, E.x, E.y, E.r);
+  eg.addColorStop(0, '#4a9ff5');
+  eg.addColorStop(0.5, '#1a6ad0');
+  eg.addColorStop(1, '#0a2a60');
+  ctx.beginPath();
+  ctx.arc(E.x, E.y, E.r, 0, Math.PI * 2);
+  ctx.fillStyle = eg;
+  ctx.fill();
+
+  ctx.font = '10px "Share Tech Mono"';
+  ctx.fillStyle = '#7090c0';
+  ctx.textAlign = 'center';
+  ctx.fillText('EARTH', E.x, E.y + E.r + 14);
+}
+
+// ── Moon ────────────────────────────────────────────────────────────────────
+function drawMoon() {
+  const glow = ctx.createRadialGradient(M.x, M.y, M.r * 0.5, M.x, M.y, M.r * 3.5);
+  glow.addColorStop(0, 'rgba(180,180,160,0.12)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(M.x, M.y, M.r * 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  const mg = ctx.createRadialGradient(M.x - 4, M.y - 4, 2, M.x, M.y, M.r);
+  mg.addColorStop(0, '#c8c8b8');
+  mg.addColorStop(0.6, '#909080');
+  mg.addColorStop(1, '#404038');
+  ctx.beginPath();
+  ctx.arc(M.x, M.y, M.r, 0, Math.PI * 2);
+  ctx.fillStyle = mg;
+  ctx.fill();
+
+  ctx.font = '10px "Share Tech Mono"';
+  ctx.fillStyle = '#707068';
+  ctx.textAlign = 'center';
+  ctx.fillText('MOON', M.x, M.y + M.r + 14);
+}
+
+// ── Trajectory helpers ───────────────────────────────────────────────────────
+// Returns a point at parameter t (0–1) along a cubic bezier
+function cubicBezier(p0, p1, p2, p3, t) {
+  const mt = 1 - t;
+  return {
+    x: mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x,
+    y: mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y
+  };
+}
+
+// Apollo 13 — classic free-return figure-8 / teardrop
+// Departs Earth heading to Moon, slings around far side, returns directly
+const A13 = {
+  // Outbound leg (Earth → Moon far side, upper arc)
+  out: [
+    { x: E.x, y: E.y - E.r },           // start at top of Earth
+    { x: 360, y: H * 0.08 },            // cp1 — arcs up
+    { x: 640, y: H * 0.12 },            // cp2 — approaches Moon from above
+    { x: M.x + 5, y: M.y - M.r - 2 }   // end — top of Moon
+  ],
+  // Around the far side (small arc behind Moon)
+  around: [
+    { x: M.x + 5, y: M.y - M.r - 2 },
+    { x: M.x + 68, y: M.y - 30 },
+    { x: M.x + 68, y: M.y + 30 },
+    { x: M.x + 5, y: M.y + M.r + 2 }
+  ],
+  // Return leg (Moon far side → Earth, lower arc)
+  ret: [
+    { x: M.x + 5, y: M.y + M.r + 2 },
+    { x: 640, y: H * 0.88 },
+    { x: 360, y: H * 0.92 },
+    { x: E.x, y: E.y + E.r }
+  ]
+};
+
+// Artemis 2 — hybrid free-return: longer outbound, much wider far-side swing
+const A2 = {
+  out: [
+    { x: E.x, y: E.y - E.r },
+    { x: 300, y: H * 0.04 },
+    { x: 580, y: H * 0.05 },
+    { x: M.x - 4, y: M.y - M.r - 2 }
+  ],
+  // Wide hybrid arc — swings far beyond Moon (~9200 km farther out)
+  around: [
+    { x: M.x - 4, y: M.y - M.r - 2 },
+    { x: M.x + 110, y: M.y - 120 },
+    { x: M.x + 210, y: M.y },
+    { x: M.x + 110, y: M.y + 120 },
+  ],
+  around2: [
+    { x: M.x + 110, y: M.y + 120 },
+    { x: M.x + 30,  y: M.y + 90  },
+    { x: M.x + 10,  y: M.y + M.r + 20 },
+    { x: M.x - 4,   y: M.y + M.r + 2  }
+  ],
+  ret: [
+    { x: M.x - 4, y: M.y + M.r + 2 },
+    { x: 580, y: H * 0.95 },
+    { x: 300, y: H * 0.96 },
+    { x: E.x, y: E.y + E.r }
+  ]
+};
+
+// ── Draw a bezier segment with a dashed/solid style ──────────────────────────
+function drawBezierSegment(pts, color, dash, alpha = 1, lineWidth = 1.8) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.setLineDash(dash);
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  ctx.bezierCurveTo(pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ── Draw trajectory up to fraction t (0–1 over all segments) ─────────────────
+function drawTrajectoryPartial(segments, color, dash, tFrac, lineWidth = 1.8) {
+  const total = segments.length;
+  let drawn = 0;
+  for (let i = 0; i < total; i++) {
+    const segStart = i / total;
+    const segEnd = (i + 1) / total;
+    if (tFrac <= segStart) break;
+    const pts = segments[i];
+    if (tFrac >= segEnd) {
+      drawBezierSegment(pts, color, dash, 1, lineWidth);
+    } else {
+      // Partial segment
+      const localT = (tFrac - segStart) / (1 / total);
+      drawBezierSegmentPartial(pts, color, dash, localT, lineWidth);
+    }
+    drawn++;
+  }
+}
+
+function drawBezierSegmentPartial(pts, color, dash, t, lineWidth) {
+  // De Casteljau subdivision to get sub-curve from 0..t
+  function lerp(a, b, t) { return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+  const p0 = pts[0], p1 = pts[1], p2 = pts[2], p3 = pts[3];
+  const p01 = lerp(p0, p1, t);
+  const p12 = lerp(p1, p2, t);
+  const p23 = lerp(p2, p3, t);
+  const p012 = lerp(p01, p12, t);
+  const p123 = lerp(p12, p23, t);
+  const p0123 = lerp(p012, p123, t);
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.setLineDash(dash);
+  ctx.beginPath();
+  ctx.moveTo(p0.x, p0.y);
+  ctx.bezierCurveTo(p01.x, p01.y, p012.x, p012.y, p0123.x, p0123.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Get position along trajectory at fraction t
+function getPositionOnTrajectory(segments, tFrac) {
+  const total = segments.length;
+  for (let i = 0; i < total; i++) {
+    const segStart = i / total;
+    const segEnd = (i + 1) / total;
+    if (tFrac <= segEnd) {
+      const localT = Math.max(0, (tFrac - segStart) / (1 / total));
+      return cubicBezier(...segments[i], Math.min(1, localT));
+    }
+  }
+  const last = segments[segments.length - 1];
+  return cubicBezier(...last, 1);
+}
+
+// ── Spacecraft dot ────────────────────────────────────────────────────────────
+function drawCraft(pos, color) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.restore();
+}
+
+// ── Distance annotation ───────────────────────────────────────────────────────
+function drawAnnotation(x, y, text, color) {
+  ctx.save();
+  ctx.font = '10px "Share Tech Mono"';
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.85;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+// ── Apollo 13 segments in order ───────────────────────────────────────────────
+const a13Segments = [A13.out, A13.around, A13.ret];
+const a2Segments  = [A2.out, A2.around, A2.around2, A2.ret];
+
+// ── Animation state ───────────────────────────────────────────────────────────
+let animating = false;
+let t13 = 1, t2 = 1;   // 1 = fully drawn static
+let startTime = null;
+const DURATION = 7000;  // ms for full traversal
+
+// Speed: Artemis is ~1.69x longer journey so animate proportionally
+const A2_SPEED = 0.72;  // relative speed factor (A2 goes further, takes longer)
+
+function render(timestamp) {
+  ctx.clearRect(0, 0, W, H);
+  drawStars();
+
+  if (animating) {
+    if (!startTime) startTime = timestamp;
+    const elapsed = timestamp - startTime;
+    t13 = Math.min(1, elapsed / DURATION);
+    t2  = Math.min(1, elapsed / (DURATION / A2_SPEED));
+  }
+
+  // ── Draw trajectories ──────────────────────────────────────────────────────
+  // Apollo 13 — orange dashed
+  drawTrajectoryPartial(a13Segments, '#e8820a', [6, 4], t13, 1.6);
+  // Artemis 2 — violet solid
+  drawTrajectoryPartial(a2Segments, '#9060ee', [], t2, 1.8);
+
+  // ── Apoapsis markers ──────────────────────────────────────────────────────
+  if (t13 > 0.45 && t13 < 0.6) {
+    drawAnnotation(M.x + 18, M.y - 46, '~254 km', '#e8820a');
+  }
+  if (t13 >= 0.6) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(232,130,10,0.35)';
+    ctx.setLineDash([3,3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(M.x + 70, M.y);
+    ctx.lineTo(M.x + 100, M.y - 18);
+    ctx.stroke();
+    ctx.restore();
+    drawAnnotation(M.x + 72, M.y - 22, '~254 km', '#e8820a');
+  }
+
+  if (t2 > 0.38 && t2 < 0.62) {
+    const apPos = cubicBezier(...A2.around, 0.5);
+    drawAnnotation(apPos.x + 8, apPos.y + 4, '~9,200 km', '#a070ff');
+  }
+  if (t2 >= 0.62) {
+    const apPos = cubicBezier(...A2.around, 0.5);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(160,112,255,0.35)';
+    ctx.setLineDash([3,3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(apPos.x, apPos.y);
+    ctx.lineTo(apPos.x + 10, apPos.y - 18);
+    ctx.stroke();
+    ctx.restore();
+    drawAnnotation(apPos.x + 8, apPos.y - 22, '~9,200 km beyond Moon', '#a070ff');
+  }
+
+  // ── Spacecraft positions when animating ───────────────────────────────────
+  if (animating || (t13 < 1 || t2 < 1)) {
+    if (t13 > 0 && t13 < 1) {
+      const pos13 = getPositionOnTrajectory(a13Segments, t13);
+      drawCraft(pos13, '#ffa040');
+    }
+    if (t2 > 0 && t2 < 1) {
+      const pos2 = getPositionOnTrajectory(a2Segments, t2);
+      drawCraft(pos2, '#b090ff');
+    }
+  }
+
+  drawMoon();
+  drawEarth();
+
+  // ── Labels ────────────────────────────────────────────────────────────────
+  ctx.font = 'bold 11px "Orbitron", sans-serif';
+  ctx.fillStyle = '#e8820a';
+  ctx.textAlign = 'left';
+  ctx.fillText('APOLLO 13', 30, 30);
+  ctx.font = '9px "Share Tech Mono"';
+  ctx.fillStyle = '#906040';
+  ctx.fillText('1970 · free-return', 30, 46);
+
+  ctx.font = 'bold 11px "Orbitron", sans-serif';
+  ctx.fillStyle = '#9060ee';
+  ctx.textAlign = 'right';
+  ctx.fillText('ARTEMIS 2', W - 30, 30);
+  ctx.font = '9px "Share Tech Mono"';
+  ctx.fillStyle = '#604090';
+  ctx.textAlign = 'right';
+  ctx.fillText('2025 · hybrid free-return', W - 30, 46);
+
+  if (animating && t13 >= 1 && t2 >= 1) {
+    animating = false;
+    document.getElementById('btnPlay').classList.remove('active');
+  }
+
+  if (animating) {
+    requestAnimationFrame(render);
+  }
+}
+
+// Initial static render
+render(0);
+
+document.getElementById('btnPlay').addEventListener('click', () => {
+  if (!animating) {
+    t13 = 0; t2 = 0; startTime = null;
+    animating = true;
+    document.getElementById('btnPlay').classList.add('active');
+    requestAnimationFrame(render);
+  }
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  animating = false;
+  t13 = 1; t2 = 1; startTime = null;
+  document.getElementById('btnPlay').classList.remove('active');
+  render(0);
+});
+</script>
+</body>
+</html>
