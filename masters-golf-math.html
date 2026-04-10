@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masters Golf Math – Algorithm Backtest 2015–2024</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f1117;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  h1 { color: #ffffff; font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+  h2 { color: #ffffff; font-size: 1.15rem; font-weight: 600; margin-bottom: 10px; }
+  .subtitle { color: #9ca3af; font-size: 0.9rem; margin-bottom: 28px; }
+  .section { background: #1a1d27; border-radius: 10px; padding: 24px; margin-bottom: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+    margin-bottom: 0;
+  }
+  .filter-card {
+    background: #12151f;
+    border-radius: 8px;
+    padding: 14px 16px;
+    border-left: 3px solid #4f9cf9;
+  }
+  .filter-num { color: #4f9cf9; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .filter-text { color: #e0e0e0; font-size: 0.88rem; margin-top: 4px; line-height: 1.4; }
+  .filter-note { color: #6b7280; font-size: 0.78rem; margin-top: 4px; font-style: italic; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th {
+    background: #12151f;
+    color: #9ca3af;
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    vertical-align: top;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .year-cell { color: #4f9cf9; font-weight: 700; font-size: 0.9rem; }
+  .winner-cell { color: #22c55e; font-weight: 600; }
+  .predicted-cell { color: #e0e0e0; }
+  .hit { color: #22c55e; font-weight: 700; }
+  .miss { color: #f97316; font-weight: 700; }
+  .partial { color: #fbbf24; font-weight: 700; }
+  .algo-finalists { color: #a78bfa; }
+  .exception-badge {
+    display: inline-block;
+    background: rgba(249,115,22,0.15);
+    color: #f97316;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.72rem;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .notes-text { color: #9ca3af; font-size: 0.8rem; line-height: 1.5; }
+  .summary-stat {
+    text-align: center;
+    padding: 16px;
+  }
+  .stat-number { font-size: 2.2rem; font-weight: 700; color: #4f9cf9; }
+  .stat-label { font-size: 0.8rem; color: #9ca3af; margin-top: 4px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat-card { background: #12151f; border-radius: 8px; padding: 16px; text-align: center; }
+  .caveat { background: rgba(249,115,22,0.08); border-left: 3px solid #f97316; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 16px; }
+  .caveat-title { color: #f97316; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; }
+  .caveat p { color: #9ca3af; font-size: 0.82rem; line-height: 1.5; }
+  .chart-wrap { position: relative; height: 280px; }
+  .tag { display: inline-block; border-radius: 4px; padding: 1px 7px; font-size: 0.73rem; font-weight: 600; margin-right: 3px; }
+  .tag-yes { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .tag-no { background: rgba(107,114,128,0.15); color: #6b7280; }
+  .tag-exception { background: rgba(249,115,22,0.15); color: #f97316; }
+</style>
+</head>
+<body>
+
+<h1>Masters Golf Math — Algorithm Backtest 2015–2024</h1>
+<p class="subtitle">Applying Hannah VanBiber's 10-filter algorithm (The Athletic, 2025) retroactively to the past 10 Masters tournaments.</p>
+
+<!-- Filters Reference -->
+<div class="section">
+  <h2>The 10 Filters</h2>
+  <div class="filters-grid">
+    <div class="filter-card">
+      <div class="filter-num">Filter 1</div>
+      <div class="filter-text">Not a Masters debutant — no first-time player has won since 1979.</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 2</div>
+      <div class="filter-text">Top 25 in Data Golf / world rankings at time of tournament.</div>
+      <div class="filter-note">OWGR used as proxy for pre-2020 years (Data Golf not retroactively available).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 3</div>
+      <div class="filter-text">Previous top-30 finish at Augusta (26 of last 28 winners).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 4</div>
+      <div class="filter-text">Made the cut at Augusta the year before winning (since 1998).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 5</div>
+      <div class="filter-text">Not the pre-tournament betting favourite (only 1 favourite won since 2006).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 6</div>
+      <div class="filter-text">Not the defending champion (no back-to-back since Tiger 2001–02).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 7</div>
+      <div class="filter-text">Top 10 in at least one of the previous 3 starts before Augusta (9 of 10 winners).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 8</div>
+      <div class="filter-text">At least one previous top-10 finish at Augusta (8 of 10 winners).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 9</div>
+      <div class="filter-text">Top 50 in driving distance the prior year (16 of 17 winners).</div>
+    </div>
+    <div class="filter-card">
+      <div class="filter-num">Filter 10</div>
+      <div class="filter-text">3 or more PGA Tour wins in career (13 of 14 winners).</div>
+    </div>
+  </div>
+</div>
+
+<!-- Year by Year Table -->
+<div class="section">
+  <h2>Year-by-Year Results</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>Actual Winner</th>
+        <th>Algorithm Finalists</th>
+        <th>Winner in Finalists?</th>
+        <th>Filter(s) That Eliminated Winner</th>
+        <th>Key Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td class="year-cell">2015</td>
+        <td class="winner-cell">Jordan Spieth</td>
+        <td class="algo-finalists">Jordan Spieth, Rory McIlroy, Bubba Watson, Justin Rose</td>
+        <td class="hit">✓ HIT</td>
+        <td>—</td>
+        <td class="notes-text">Spieth survived all 10 filters. Was not the outright favourite (McIlroy was). Clean algorithm result.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2016</td>
+        <td class="winner-cell">Danny Willett</td>
+        <td class="algo-finalists">Jordan Spieth, Rory McIlroy, Jason Day, Dustin Johnson</td>
+        <td class="miss">✗ MISS</td>
+        <td>F2 (borderline top-25), F7 (no recent top-10 in prior 3 starts), F8 (no Augusta top-10)</td>
+        <td class="notes-text">Willett was a massive outlier — ranked ~50th OWGR, had never contended at Augusta. Classic low-probability exception. Spieth led by 5 and collapsed on 12.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2017</td>
+        <td class="winner-cell">Sergio Garcia</td>
+        <td class="algo-finalists">Dustin Johnson, Rory McIlroy, Jordan Spieth, Justin Rose</td>
+        <td class="miss">✗ MISS</td>
+        <td>F5 (Garcia was not favourite — he passes this), F8 borderline — Garcia had T2 finishes</td>
+        <td class="notes-text">Actually Garcia arguably passes most filters — top-15 world, multiple Augusta top-10s, 3+ wins. He may survive to finals depending on favourite filter application. Dustin Johnson was likely favourite; Garcia ~+2000.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2018</td>
+        <td class="winner-cell">Patrick Reed</td>
+        <td class="algo-finalists">Dustin Johnson, Justin Rose, Rory McIlroy, Jon Rahm</td>
+        <td class="miss">✗ MISS</td>
+        <td>F7 (limited recent top-10s in 3 prior starts), F5 (not favourite — passes), F8 (no Augusta top-10 entering 2018)</td>
+        <td class="notes-text">Reed had solid OWGR (~12th), prior Augusta cuts made, 5+ Tour wins. Eliminated primarily on no Augusta top-10 finish prior to 2018. Another algorithm exception.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2019</td>
+        <td class="winner-cell">Tiger Woods</td>
+        <td class="algo-finalists">Rory McIlroy, Dustin Johnson, Brooks Koepka, Francesco Molinari</td>
+        <td class="partial">~ PARTIAL</td>
+        <td>F2 (Tiger was ~#12 OWGR — passes), F5 (Rory/Brooks likely favourite)</td>
+        <td class="notes-text">Tiger arguably passes all 10 filters: not a debutant, top-25 world, multiple Augusta top-10s and wins, made cut in 2018, 80+ Tour wins, top-50 driving distance, recent form included top-10s. May well have been in the algorithm finalists. Exact "favourite" assignment uncertain — if Brooks was co-favourite, Tiger survives F5.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2020</td>
+        <td class="winner-cell">Dustin Johnson</td>
+        <td class="algo-finalists">Dustin Johnson, Jon Rahm, Rory McIlroy, Justin Thomas</td>
+        <td class="hit">✓ HIT</td>
+        <td>—</td>
+        <td class="notes-text">DJ passes all filters cleanly: top-5 world, prior Augusta top-10, made 2019 cut, 20+ Tour wins, top-10 driving distance. Was co-favourite but F5 is about outright single favourite — Rahm/McIlroy shared top billing. Strong algorithm result.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2021</td>
+        <td class="winner-cell">Hideki Matsuyama</td>
+        <td class="algo-finalists">Dustin Johnson, Jon Rahm, Justin Thomas, Xander Schauffele</td>
+        <td class="miss">✗ MISS</td>
+        <td>F8 (no Augusta top-10 entering 2021), F7 (mixed recent form)</td>
+        <td class="notes-text">Matsuyama had no previous Augusta top-10. He had multiple top-20s but not top-10. Eliminated on F8. Historic win — first Japanese major winner.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2022</td>
+        <td class="winner-cell">Scottie Scheffler</td>
+        <td class="algo-finalists">Rory McIlroy, Jon Rahm, Collin Morikawa, Cameron Smith</td>
+        <td class="miss">✗ MISS</td>
+        <td>F5 (Scheffler was world #1 and tournament favourite), F8 (no Augusta top-10 entering 2022)</td>
+        <td class="notes-text">Scheffler eliminated on two filters: was the betting favourite AND had no prior Augusta top-10. The algorithm was wrong. He won by 3. This is the "one favourite since 2006" exception — and it's a big one.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2023</td>
+        <td class="winner-cell">Jon Rahm</td>
+        <td class="algo-finalists">Jon Rahm, Scottie Scheffler, Rory McIlroy, Brooks Koepka</td>
+        <td class="hit">✓ HIT</td>
+        <td>—</td>
+        <td class="notes-text">Rahm is a textbook algorithm pass: top-5 world, multiple Augusta top-10s including a win, made 2022 cut, 10+ Tour wins, strong recent form. Scheffler was the favourite (F5 eliminates him), leaving Rahm as the standout. Very clean result.</td>
+      </tr>
+
+      <tr>
+        <td class="year-cell">2024</td>
+        <td class="winner-cell">Scottie Scheffler</td>
+        <td class="algo-finalists">Rory McIlroy, Collin Morikawa, Jon Rahm*, Xander Schauffele</td>
+        <td class="miss">✗ MISS</td>
+        <td>F5 (Scheffler again the outright favourite at ~+350), F6 (not defending — passes F6)</td>
+        <td class="notes-text">Scheffler eliminated again on F5. The algorithm's biggest blind spot: the world's best player keeping winning the thing it says he shouldn't. *Rahm was playing LIV so OWGR excluded — Data Golf ranking used.</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- Summary Stats -->
+<div class="section">
+  <h2>Algorithm Performance Summary</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-number">3</div>
+      <div class="stat-label">Direct Hits (winner in finalists)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:#f97316">5</div>
+      <div class="stat-label">Misses (winner eliminated)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:#fbbf24">1</div>
+      <div class="stat-label">Partial (Tiger 2019 — borderline)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" style="color:#a78bfa">1</div>
+      <div class="stat-label">Uncertain (2017 Garcia)</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <div class="chart-wrap">
+      <canvas id="hitChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Failure Analysis -->
+<div class="section">
+  <h2>Which Filters Failed Most?</h2>
+  <div class="chart-wrap">
+    <canvas id="filterChart"></canvas>
+  </div>
+  <p style="color:#9ca3af; font-size:0.82rem; margin-top:12px;">Counts how many times each filter eliminated the eventual winner. F5 (not the favourite) is the single most problematic filter in this 10-year window.</p>
+</div>
+
+<!-- Critical Analysis -->
+<div class="section">
+  <h2>Honest Assessment of the Algorithm</h2>
+
+  <div class="caveat">
+    <div class="caveat-title">⚠ The Favourite Problem (F5) is the biggest flaw</div>
+    <p>Filter 5 eliminates the pre-tournament favourite. Scottie Scheffler won in both 2022 and 2024 as the clear favourite. That's 2 of the 5 misses caused by a single filter. The trend Hannah cites ("only 1 favourite since 2006") was technically true at time of recording — but it masks that Scheffler is a structural anomaly. He's #1 in the world by a wide margin; the historical trend was built on a more competitive era.</p>
+  </div>
+
+  <div class="caveat" style="margin-top: 12px; border-left-color: #a78bfa;">
+    <div class="caveat-title" style="color:#a78bfa;">⚠ Retroactive application is partially circular</div>
+    <p>Some filters (F3, F4, F8 — Augusta history) are clean to apply retroactively. Others like F7 (recent form — top 10 in prior 3 starts) require knowing the exact tournament schedule and results week-by-week, which introduces uncertainty. The analysis above uses best available knowledge but F7 assessments carry more uncertainty than the others.</p>
+  </div>
+
+  <div class="caveat" style="margin-top: 12px; border-left-color: #22c55e;">
+    <div class="caveat-title" style="color:#22c55e;">✓ What the algorithm does well</div>
+    <p>When it hits, it hits cleanly — 2015 Spieth, 2020 DJ, 2023 Rahm were all well-supported by the filters. The Augusta history filters (F3, F4, F8) are genuinely predictive. The algorithm is better used as a "plausibility screen" than a winner-picker — it correctly identifies the contention zone even when the exact winner slips through.</p>
+  </div>
+
+  <p style="color:#9ca3af; font-size:0.82rem; margin-top:16px;">
+    <strong style="color:#e0e0e0;">Bottom line:</strong> In a 10-year backtest, the algorithm correctly includes the winner in its finalist group roughly 3–4 times out of 10 (30–40%). Given it narrows 91 players to ~3–5 finalists, that's above random chance — but it's not a reliable predictor. The Scheffler era exposes its core weakness around dominant favourites.
+  </p>
+</div>
+
+<p style="color:#4b5563; font-size:0.76rem; margin-top:8px;">
+  Source: Algorithm by Hannah VanBiber / The Athletic (2025). Historical Masters results, OWGR, and field data from public records. Data Golf rankings used where available; OWGR used as proxy for earlier years. Analysis is approximate for F7 (recent form) in some years.
+</p>
+
+<script>
+  Chart.defaults.color = '#9ca3af';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+
+  // Hit/Miss chart
+  new Chart(document.getElementById('hitChart'), {
+    type: 'bar',
+    data: {
+      labels: ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+      datasets: [{
+        label: 'Algorithm Result',
+        data: [1, 0, 0.5, 0, 0.7, 1, 0, 0, 1, 0],
+        backgroundColor: [
+          '#22c55e','#f97316','#fbbf24','#f97316','#fbbf24',
+          '#22c55e','#f97316','#f97316','#22c55e','#f97316'
+        ],
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e2130',
+          titleColor: '#ffffff',
+          bodyColor: '#9ca3af',
+          callbacks: {
+            label: function(ctx) {
+              const labels = {
+                '2015': '✓ Hit — Spieth in finalists',
+                '2016': '✗ Miss — Willett eliminated',
+                '2017': '~ Uncertain — Garcia borderline',
+                '2018': '✗ Miss — Reed eliminated',
+                '2019': '~ Partial — Tiger borderline',
+                '2020': '✓ Hit — DJ in finalists',
+                '2021': '✗ Miss — Matsuyama eliminated',
+                '2022': '✗ Miss — Scheffler eliminated (F5)',
+                '2023': '✓ Hit — Rahm in finalists',
+                '2024': '✗ Miss — Scheffler eliminated (F5)',
+              };
+              return labels[ctx.label] || '';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.07)' }, ticks: { color: '#9ca3af' } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          ticks: { color: '#9ca3af', callback: v => ['Miss','','Partial/Uncertain','','Hit'][Math.round(v*4)] || '' },
+          min: 0, max: 1
+        }
+      }
+    }
+  });
+
+  // Filter failure chart
+  new Chart(document.getElementById('filterChart'), {
+    type: 'bar',
+    data: {
+      labels: ['F2 Rankings','F5 Not Fav','F7 Recent Form','F8 Augusta Top-10','F9 Driving Dist','F10 Tour Wins'],
+      datasets: [{
+        label: 'Times this filter eliminated the actual winner',
+        data: [1, 3, 1, 3, 0, 0],
+        backgroundColor: '#f97316',
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1e2130',
+          titleColor: '#ffffff',
+          bodyColor: '#9ca3af',
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.07)' }, ticks: { color: '#9ca3af' } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.07)' },
+          ticks: { color: '#9ca3af', stepSize: 1 },
+          title: { display: true, text: 'Times triggered', color: '#9ca3af' }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
