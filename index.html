@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>thegeekyjay — pages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #22263a;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #4f9cf9;
+      --accent2:   #f97316;
+      --text:      #e0e0e0;
+      --muted:     #9ca3af;
+      --dim:       #4b5563;
+      --radius:    10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── header ── */
+    header {
+      max-width: 900px;
+      margin: 0 auto 48px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .site-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      color: #fff;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    .site-title span {
+      color: var(--accent);
+    }
+
+    .meta-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    #status {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    #status .dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 5px;
+      background: var(--dim);
+      vertical-align: middle;
+      transition: background 0.3s;
+    }
+
+    #status.loading .dot { background: var(--accent2); animation: pulse 1s infinite; }
+    #status.ok      .dot { background: #22c55e; }
+    #status.error   .dot { background: #ef4444; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    #refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    #refresh-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ── search ── */
+    .search-wrap {
+      max-width: 900px;
+      margin: 0 auto 32px;
+    }
+
+    #search {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #search::placeholder { color: var(--dim); }
+    #search:focus { border-color: rgba(79,156,249,0.4); }
+
+    /* ── grid ── */
+    #grid {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(79,156,249,0.05) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(79,156,249,0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    .card-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+
+    .card-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    .card-filename {
+      font-size: 0.7rem;
+      color: var(--dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-size {
+      font-size: 0.68rem;
+      color: var(--dim);
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-arrow {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      color: var(--dim);
+      font-size: 0.85rem;
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .card:hover .card-arrow {
+      color: var(--accent);
+      transform: translate(2px, -2px);
+    }
+
+    /* ── states ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+
+    .skeleton {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: shimmer 1.4s infinite;
+    }
+
+    .sk-line {
+      height: 12px;
+      border-radius: 4px;
+      background: var(--surface2);
+    }
+
+    .sk-line.short { width: 55%; }
+    .sk-line.long  { width: 85%; }
+    .sk-line.tiny  { width: 35%; height: 9px; }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.55; }
+    }
+
+    /* ── footer ── */
+    footer {
+      max-width: 900px;
+      margin: 56px auto 0;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+
+    footer a { color: var(--dim); }
+    footer a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="site-title">thegeekyjay<span>.</span></div>
+  <div class="meta-bar">
+    <div id="status"><span class="dot"></span><span id="status-text">–</span></div>
+    <button id="refresh-btn" onclick="load(true)">↻ refresh</button>
+  </div>
+</header>
+
+<div class="search-wrap">
+  <input id="search" type="text" placeholder="filter pages…" autocomplete="off" spellcheck="false" />
+</div>
+
+<div id="grid"></div>
+
+<footer>
+  Pages auto-discovered from
+  <a href="https://github.com/thegeekyjay/thegeekyjay.github.io" target="_blank" rel="noopener">
+    github.com/thegeekyjay/thegeekyjay.github.io
+  </a>
+  via GitHub Contents API · cached 5 min
+</footer>
+
+<script>
+  // ── config ──────────────────────────────────────────────
+  const REPO_OWNER   = 'thegeekyjay';
+  const REPO_NAME    = 'thegeekyjay.github.io';
+  const CACHE_KEY    = 'gh_index_cache';
+  const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+  // Files to exclude from the listing
+  const EXCLUDE = new Set(['index.html']);
+
+  // ── state ────────────────────────────────────────────────
+  let allPages = [];
+
+  // ── DOM refs ─────────────────────────────────────────────
+  const grid       = document.getElementById('grid');
+  const searchEl   = document.getElementById('search');
+  const statusEl   = document.getElementById('status');
+  const statusText = document.getElementById('status-text');
+
+  // ── status helpers ───────────────────────────────────────
+  function setStatus(state, msg) {
+    statusEl.className = state;
+    statusText.textContent = msg;
+  }
+
+  // ── format filename → readable title ─────────────────────
+  function formatName(filename) {
+    return filename
+      .replace(/\.html?$/i, '')
+      .replace(/[-_]/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  // ── format bytes ─────────────────────────────────────────
+  function formatBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  // ── pick an icon based on filename keywords ───────────────
+  function pickIcon(name) {
+    const n = name.toLowerCase();
+    if (n.includes('chart') || n.includes('graph') || n.includes('plot') || n.includes('viz')) return '📊';
+    if (n.includes('price') || n.includes('cost') || n.includes('petrol') || n.includes('oil')) return '⛽';
+    if (n.includes('map') || n.includes('geo') || n.includes('location')) return '🗺️';
+    if (n.includes('orbit') || n.includes('apollo') || n.includes('artemis') || n.includes('space')) return '🚀';
+    if (n.includes('broadband') || n.includes('network') || n.includes('nbp')) return '📡';
+    if (n.includes('council') || n.includes('planning') || n.includes('granard')) return '🏛️';
+    if (n.includes('energy') || n.includes('seai') || n.includes('carbon')) return '⚡';
+    if (n.includes('tax') || n.includes('finance') || n.includes('budget')) return '💶';
+    if (n.includes('tool') || n.includes('calc') || n.includes('convert')) return '🔧';
+    return '📄';
+  }
+
+  // ── render skeleton placeholders ─────────────────────────
+  function showSkeletons(n = 6) {
+    grid.innerHTML = Array.from({ length: n }, () => `
+      <div class="skeleton">
+        <div class="sk-line short"></div>
+        <div class="sk-line long"></div>
+        <div class="sk-line tiny"></div>
+      </div>`).join('');
+  }
+
+  // ── render page cards ─────────────────────────────────────
+  function render(pages) {
+    if (!pages.length) {
+      grid.innerHTML = `<div class="empty-state">No pages found.<br>
+        <small>Check the repo is public and contains .html files.</small></div>`;
+      return;
+    }
+
+    grid.innerHTML = pages.map(p => `
+      <a class="card" href="${p.url}" target="_blank" rel="noopener">
+        <span class="card-icon">${p.icon}</span>
+        <div class="card-name">${p.name}</div>
+        <div class="card-filename">${p.filename}</div>
+        <div class="card-size">${p.size}</div>
+        <span class="card-arrow">↗</span>
+      </a>`).join('');
+  }
+
+  // ── filter on search input ────────────────────────────────
+  searchEl.addEventListener('input', () => {
+    const q = searchEl.value.toLowerCase().trim();
+    if (!q) { render(allPages); return; }
+    render(allPages.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.filename.toLowerCase().includes(q)
+    ));
+  });
+
+  // ── fetch from GitHub API ─────────────────────────────────
+  async function fetchPages() {
+    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/`;
+    const res  = await fetch(url, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+
+    if (!res.ok) {
+      const remaining = res.headers.get('x-ratelimit-remaining');
+      if (res.status === 403 && remaining === '0') {
+        throw new Error('GitHub API rate limit hit — try again in ~1 hour');
+      }
+      throw new Error(`GitHub API error: ${res.status} ${res.statusText}`);
+    }
+
+    const items = await res.json();
+
+    return items
+      .filter(item =>
+        item.type === 'file' &&
+        /\.html?$/i.test(item.name) &&
+        !EXCLUDE.has(item.name.toLowerCase())
+      )
+      .map(item => ({
+        filename : item.name,
+        name     : formatName(item.name),
+        icon     : pickIcon(item.name),
+        size     : formatBytes(item.size),
+        url      : `https://${REPO_OWNER}.github.io/${item.name}`
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  // ── main load ─────────────────────────────────────────────
+  async function load(forceRefresh = false) {
+    setStatus('loading', 'fetching…');
+    showSkeletons();
+    searchEl.value = '';
+
+    // Try cache first (unless forced refresh)
+    if (!forceRefresh) {
+      try {
+        const raw = sessionStorage.getItem(CACHE_KEY);
+        if (raw) {
+          const { pages, ts } = JSON.parse(raw);
+          if (Date.now() - ts < CACHE_TTL_MS) {
+            allPages = pages;
+            render(allPages);
+            const age = Math.round((Date.now() - ts) / 1000);
+            setStatus('ok', `${pages.length} pages · cached ${age}s ago`);
+            return;
+          }
+        }
+      } catch { /* bad cache entry — ignore */ }
+    }
+
+    // Live fetch
+    try {
+      allPages = await fetchPages();
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ pages: allPages, ts: Date.now() }));
+      render(allPages);
+      const now = new Date().toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' });
+      setStatus('ok', `${allPages.length} pages · fetched ${now}`);
+    } catch (err) {
+      grid.innerHTML = `<div class="empty-state">⚠️ Could not load pages.<br><small>${err.message}</small></div>`;
+      setStatus('error', err.message.length > 40 ? 'fetch failed' : err.message);
+    }
+  }
+
+  // ── kick off ──────────────────────────────────────────────
+  load();
+</script>
+</body>
+</html>
