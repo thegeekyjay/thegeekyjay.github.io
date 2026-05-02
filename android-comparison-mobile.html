@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Android Phones – Ireland 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0b0d14;
+      --surface:  #13151f;
+      --card:     #1a1d2b;
+      --border:   rgba(255,255,255,0.07);
+      --text:     #e2e4ed;
+      --muted:    #6b7280;
+      --radius:   14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 20px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .header p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* ── Phone tab strip ── */
+    .tab-strip-wrap {
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 12px 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-strip-wrap::-webkit-scrollbar { display: none; }
+
+    .tab-strip {
+      display: flex;
+      gap: 6px;
+      white-space: nowrap;
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: var(--surface);
+      cursor: pointer;
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .tab-btn .tab-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: color 0.18s;
+    }
+    .tab-btn .tab-price {
+      font-size: 0.68rem;
+      color: var(--muted);
+      transition: color 0.18s;
+    }
+    .tab-btn.active {
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.04);
+    }
+    .tab-btn.active .tab-name,
+    .tab-btn.active .tab-price {
+      color: var(--accent);
+    }
+
+    /* ── Phone card ── */
+    .cards-wrap {
+      padding: 16px;
+    }
+
+    .phone-card {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .phone-card.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      background: var(--card);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header .phone-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .card-header .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .card-header .price {
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .card-header .price-source {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* verdict badge on header */
+    .verdict-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 10px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    /* ── Spec rows ── */
+    .spec-list {
+      background: var(--card);
+      border-radius: 0 0 var(--radius) var(--radius);
+      overflow: hidden;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .spec-row:last-child { border-bottom: none; }
+
+    .spec-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+      width: 38%;
+      padding-top: 1px;
+    }
+
+    .spec-value {
+      font-size: 0.85rem;
+      color: var(--text);
+      text-align: right;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 4px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .tag-best { background: rgba(34,197,94,0.15);  color: #22c55e; }
+    .tag-weak { background: rgba(239,68,68,0.12);  color: #ef4444; }
+    .tag-warn { background: rgba(250,204,21,0.12); color: #facc15; }
+
+    /* ── Verdict box ── */
+    .verdict-box {
+      margin-top: 12px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      border-left: 3px solid var(--accent);
+    }
+    .verdict-box .verdict-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .verdict-box p {
+      font-size: 0.84rem;
+      color: #9ca3af;
+      line-height: 1.6;
+    }
+
+    /* ── Buy button ── */
+    .buy-btn {
+      display: block;
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: var(--radius);
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: rgba(255,255,255,0.03);
+      transition: background 0.15s;
+    }
+    .buy-btn:active { background: rgba(255,255,255,0.07); }
+
+    /* ── Nav arrows ── */
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0 0;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .nav-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+    .nav-btn:disabled { opacity: 0.25; pointer-events: none; }
+    .nav-counter {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin-top: 28px;
+      padding: 0 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Android Phones — Ireland</h1>
+  <p>Unlocked · New · In stock · Prices verified May 2026</p>
+</div>
+
+<div class="tab-strip-wrap">
+  <div class="tab-strip" id="tabStrip"></div>
+</div>
+
+<div class="cards-wrap">
+  <div id="cardsContainer"></div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">← Prev</button>
+    <span class="nav-counter" id="navCounter"></span>
+    <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Next →</button>
+  </div>
+</div>
+
+<footer>Tap phone name to switch · Swipe left/right to navigate</footer>
+
+<script>
+const phones = [
+  {
+    name: "Galaxy A56 5G",
+    shortName: "A56",
+    price: "~€419",
+    source: "Currys.ie",
+    buyUrl: "https://www.currys.ie/products/samsung-galaxy-a56-5g-256-gb-awesome-graphite-10278404.html",
+    accent: "#a78bfa",
+    verdictLabel: "Budget Pick",
+    verdictBg: "rgba(167,139,250,0.15)",
+    verdict: "Half the price of the competition. Good AMOLED display, 6-year updates, IP67. The Exynos 1580 chip is a significant step down and there's no wireless charging — but hard to argue with the value if budget is the priority.",
+    specs: [
+      { label: "Chip",       value: "Exynos 1580 (4nm)", tag: "weak", tagText: "Weakest" },
+      { label: "RAM / Storage", value: "8GB / 256GB" },
+      { label: "Display",    value: '6.7″ AMOLED 120Hz FHD+' },
+      { label: "Weight",     value: "198g" },
+      { label: "Battery",    value: "5,000mAh" },
+      { label: "Charging",   value: "45W wired / No wireless", tag: "weak", tagText: "No wireless" },
+      { label: "Cameras",    value: "50MP + 12MP + 5MP" },
+      { label: "OS Updates", value: "6 years" },
+      { label: "IP Rating",  value: "IP67" },
+      { label: "Software",   value: "One UI 7" },
+      { label: "Unlocked",   value: "✓" },
+    ]
+  },
+  {
+    name: "Galaxy A57 5G",
+    shortName: "A57",
+    price: "€619",
+    source: "Harvey Norman",
+    buyUrl: "https://www.harveynorman.ie/mobile-phones/sim-free-phones/samsung-galaxy-a57-8gb-256gb-5g-awesome-navy.html",
+    accent: "#22d3ee",
+    verdictLabel: "Skip",
+    verdictBg: "rgba(239,68,68,0.15)",
+    verdict: "Newer chip and lighter at 179g, but €200 more than the A56 for marginal gains. No wireless charging, still IP67. The A56 will get Android 16 anyway. Hard to recommend at this price.",
+    specs: [
+      { label: "Chip",       value: "Exynos 1680 (4nm)" },
+      { label: "RAM / Storage", value: "8GB / 256GB" },
+      { label: "Display",    value: '6.7″ AMOLED 120Hz FHD+' },
+      { label: "Weight",     value: "179g" },
+      { label: "Battery",    value: "5,000mAh" },
+      { label: "Charging",   value: "45W wired / No wireless", tag: "weak", tagText: "No wireless" },
+      { label: "Cameras",    value: "50MP + 13MP + 5MP" },
+      { label: "OS Updates", value: "6 years" },
+      { label: "IP Rating",  value: "IP67" },
+      { label: "Software",   value: "One UI 8.5 / Android 16" },
+      { label: "Unlocked",   value: "✓" },
+    ]
+  },
+  {
+    name: "Galaxy S25 FE",
+    shortName: "S25 FE",
+    price: "€839",
+    source: "Harvey Norman",
+    buyUrl: "https://www.harveynorman.ie/mobile-phones/sim-free-phones/samsung-galaxy-s25-fe-256gb-5g.html",
+    accent: "#fb7185",
+    verdictLabel: "Questionable Value",
+    verdictBg: "rgba(251,113,133,0.15)",
+    verdict: "Flagship Exynos 2400 chip, 7-year updates, IP68, and 190g. Solid specs on paper. But at €839 it's only €26 less than the OnePlus 15 which gives you double the RAM, double the storage, and far faster charging.",
+    specs: [
+      { label: "Chip",       value: "Exynos 2400 (4nm)" },
+      { label: "RAM / Storage", value: "8GB / 256GB" },
+      { label: "Display",    value: '6.7″ AMOLED 2X 120Hz FHD+' },
+      { label: "Weight",     value: "190g" },
+      { label: "Battery",    value: "4,900mAh" },
+      { label: "Charging",   value: "45W wired / 15W wireless" },
+      { label: "Cameras",    value: "50MP + 12MP + 8MP" },
+      { label: "OS Updates", value: "7 years", tag: "best", tagText: "Best" },
+      { label: "IP Rating",  value: "IP68" },
+      { label: "Software",   value: "One UI 8" },
+      { label: "Unlocked",   value: "✓" },
+    ]
+  },
+  {
+    name: "OnePlus 15",
+    shortName: "OP 15",
+    price: "€865",
+    source: "Amazon.ie",
+    buyUrl: "https://www.amazon.ie/dp/B0FSDPR9MD",
+    accent: "#f97316",
+    verdictLabel: "Best Value Flagship",
+    verdictBg: "rgba(249,115,22,0.15)",
+    verdict: "Most storage, fastest charging, biggest battery. The 16GB/512GB config at €865 makes the competition look overpriced on specs. Trade-off: shorter software support and heaviest of the flagships.",
+    specs: [
+      { label: "Chip",       value: "Snapdragon 8 Elite Gen 5" },
+      { label: "RAM / Storage", value: "16GB / 512GB", tag: "best", tagText: "Best" },
+      { label: "Display",    value: '6.78″ AMOLED 165Hz WQHD+' },
+      { label: "Weight",     value: "211–215g", tag: "weak", tagText: "Heaviest" },
+      { label: "Battery",    value: "7,300mAh", tag: "best", tagText: "Best" },
+      { label: "Charging",   value: "120W wired / 50W wireless", tag: "best", tagText: "Fastest" },
+      { label: "Cameras",    value: "50MP + 50MP + 50MP" },
+      { label: "OS Updates", value: "4yr Android / 6yr security", tag: "weak", tagText: "Shortest" },
+      { label: "IP Rating",  value: "IP66 / IP68 / IP69", tag: "best", tagText: "Best" },
+      { label: "Software",   value: "OxygenOS" },
+      { label: "Unlocked",   value: "✓" },
+    ]
+  },
+  {
+    name: "Google Pixel 10",
+    shortName: "Pixel 10",
+    price: "€919",
+    source: "Currys.ie",
+    buyUrl: "https://www.currys.ie/phones/mobile-phones/mobile-phones/pixel-10",
+    accent: "#4f9cf9",
+    verdictLabel: "Best Software",
+    verdictBg: "rgba(79,156,249,0.15)",
+    verdict: "Cleanest Android experience with 7 years of guaranteed updates. Hard to justify at €919 for only 128GB storage. Best pick if longevity and software quality matter more than raw specs.",
+    specs: [
+      { label: "Chip",       value: "Google Tensor G5", tag: "weak", tagText: "Slowest" },
+      { label: "RAM / Storage", value: "12GB / 128GB", tag: "weak", tagText: "Least storage" },
+      { label: "Display",    value: '6.3″ OLED 120Hz FHD+' },
+      { label: "Weight",     value: "204g" },
+      { label: "Battery",    value: "4,970mAh" },
+      { label: "Charging",   value: "23W wired / Qi2" },
+      { label: "Cameras",    value: "48MP + 13MP + 10.8MP" },
+      { label: "OS Updates", value: "7 years", tag: "best", tagText: "Best" },
+      { label: "IP Rating",  value: "IP68" },
+      { label: "Software",   value: "Stock Android", tag: "best", tagText: "Cleanest" },
+      { label: "Unlocked",   value: "✓" },
+    ]
+  },
+  {
+    name: "Samsung Galaxy S26",
+    shortName: "S26",
+    price: "€1,019",
+    source: "Samsung.ie",
+    buyUrl: "https://shop.samsung.com/ie/galaxy-s26-black-256gb",
+    accent: "#22c55e",
+    verdictLabel: "Most Refined",
+    verdictBg: "rgba(34,197,94,0.15)",
+    verdict: "Lightest flagship at just 167g, 7-year updates, and Samsung's most polished One UI. Sits €19 over the €1,000 ceiling — worth stretching for if compactness and build quality are your priorities.",
+    specs: [
+      { label: "Chip",       value: "Snapdragon 8 Elite Gen 5" },
+      { label: "RAM / Storage", value: "12GB / 256GB" },
+      { label: "Display",    value: '6.2″ AMOLED 1–120Hz' },
+      { label: "Weight",     value: "167g", tag: "best", tagText: "Lightest" },
+      { label: "Battery",    value: "4,300mAh", tag: "weak", tagText: "Smallest" },
+      { label: "Charging",   value: "25W wired / 15W wireless" },
+      { label: "Cameras",    value: "50MP + 12MP + 10MP" },
+      { label: "OS Updates", value: "7 years", tag: "best", tagText: "Best" },
+      { label: "IP Rating",  value: "IP68" },
+      { label: "Software",   value: "One UI 7" },
+      { label: "Unlocked",   value: "✓" },
+    ]
+  },
+];
+
+let current = 0;
+
+function render() {
+  const strip = document.getElementById('tabStrip');
+  const container = document.getElementById('cardsContainer');
+  strip.innerHTML = '';
+  container.innerHTML = '';
+
+  phones.forEach((p, i) => {
+    // Tab button
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i === current ? ' active' : '');
+    btn.style.setProperty('--accent', p.accent);
+    btn.innerHTML = `<span class="tab-name">${p.shortName}</span><span class="tab-price">${p.price}</span>`;
+    btn.onclick = () => { current = i; render(); scrollTab(i); };
+    strip.appendChild(btn);
+
+    // Phone card
+    const card = document.createElement('div');
+    card.className = 'phone-card' + (i === current ? ' active' : '');
+    card.style.setProperty('--accent', p.accent);
+
+    const tagHTML = (spec) => spec.tag
+      ? `<span class="tag tag-${spec.tag}">${spec.tagText}</span>`
+      : '';
+
+    const specsHTML = p.specs.map(s =>
+      `<div class="spec-row">
+        <span class="spec-label">${s.label}</span>
+        <span class="spec-value">${s.value}${tagHTML(s)}</span>
+      </div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="phone-name">${p.name}</div>
+        <div class="price-row">
+          <span class="price" style="color:var(--accent)">${p.price}</span>
+          <span class="price-source">${p.source}</span>
+        </div>
+        <div class="verdict-badge" style="background:${p.verdictBg};color:var(--accent)">${p.verdictLabel}</div>
+      </div>
+      <div class="spec-list">${specsHTML}</div>
+      <div class="verdict-box">
+        <div class="verdict-title">Verdict</div>
+        <p>${p.verdict}</p>
+      </div>
+      <a class="buy-btn" href="${p.buyUrl}" target="_blank" rel="noopener">Buy → ${p.source}</a>
+    `;
+    container.appendChild(card);
+  });
+
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === phones.length - 1;
+  document.getElementById('navCounter').textContent = `${current + 1} / ${phones.length}`;
+}
+
+function navigate(dir) {
+  current = Math.max(0, Math.min(phones.length - 1, current + dir));
+  render();
+  scrollTab(current);
+}
+
+function scrollTab(i) {
+  const strip = document.getElementById('tabStrip');
+  const btn = strip.children[i];
+  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+// Touch swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+render();
+</script>
+</body>
+</html>

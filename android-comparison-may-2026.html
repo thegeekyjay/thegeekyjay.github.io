@@ -109,6 +109,8 @@
     .px-color   { color: #4f9cf9; }
     .ss-color   { color: #22c55e; }
     .a56-color  { color: #a78bfa; }
+    .fe-color   { color: #fb7185; }
+    .a57-color  { color: #22d3ee; }
 
     .badge {
       display: inline-block;
@@ -144,6 +146,8 @@
     .verdict-card.px  { border-color: #4f9cf9; }
     .verdict-card.ss  { border-color: #22c55e; }
     .verdict-card.a56 { border-color: #a78bfa; }
+    .verdict-card.fe  { border-color: #fb7185; }
+    .verdict-card.a57 { border-color: #22d3ee; }
 
     .verdict-card h3 {
       font-size: 0.95rem;
@@ -180,6 +184,8 @@
     a.buy-link.px  { background: rgba(79,156,249,0.12);  color: #4f9cf9; border: 1px solid rgba(79,156,249,0.3); }
     a.buy-link.ss  { background: rgba(34,197,94,0.12);   color: #22c55e; border: 1px solid rgba(34,197,94,0.3);  }
     a.buy-link.a56 { background: rgba(167,139,250,0.12); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+    a.buy-link.fe  { background: rgba(251,113,133,0.12); color: #fb7185; border: 1px solid rgba(251,113,133,0.3); }
+    a.buy-link.a57 { background: rgba(34,211,238,0.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,0.3); }
 
     footer {
       color: #4b5563;
@@ -209,6 +215,8 @@
         <tr>
           <th>Spec</th>
           <th class="a56-color">Galaxy A56 5G</th>
+          <th class="a57-color">Galaxy A57 5G</th>
+          <th class="fe-color">Galaxy S25 FE</th>
           <th class="op-color">OnePlus 15</th>
           <th class="px-color">Google Pixel 10</th>
           <th class="ss-color">Samsung Galaxy S26</th>
@@ -221,6 +229,14 @@
           <td>
             <span class="price a56-color">~€419</span><br>
             <span class="badge badge-best">Budget pick</span>
+          </td>
+          <td>
+            <span class="price a57-color">€619</span><br>
+            <span class="badge badge-good">Mid</span>
+          </td>
+          <td>
+            <span class="price fe-color">€839</span><br>
+            <span class="badge badge-good">Mid</span>
           </td>
           <td>
             <span class="price op-color">€865</span><br>
@@ -239,6 +255,8 @@
         <tr>
           <td class="row-label">RAM / Storage</td>
           <td>8GB / 256GB</td>
+          <td>8GB / 256GB</td>
+          <td>8GB / 256GB</td>
           <td>16GB / 512GB <span class="badge badge-best">Best</span></td>
           <td>12GB / 128GB <span class="badge badge-weak">Weakest</span></td>
           <td>12GB / 256GB</td>
@@ -247,6 +265,8 @@
         <tr>
           <td class="row-label">Chip</td>
           <td>Exynos 1580 (4nm) <span class="badge badge-weak">Weakest</span></td>
+          <td>Exynos 1680 (4nm)</td>
+          <td>Exynos 2400 (4nm)</td>
           <td>Snapdragon 8 Elite Gen 5</td>
           <td>Google Tensor G5 <span class="badge badge-weak">Slowest flagship</span></td>
           <td>Snapdragon 8 Elite Gen 5</td>
@@ -255,6 +275,8 @@
         <tr>
           <td class="row-label">Display</td>
           <td>6.7&Prime; AMOLED 120Hz FHD+</td>
+          <td>6.7&Prime; AMOLED 120Hz FHD+</td>
+          <td>6.7&Prime; AMOLED 2X 120Hz FHD+</td>
           <td>6.78&Prime; AMOLED 165Hz WQHD+</td>
           <td>6.3&Prime; OLED 120Hz FHD+</td>
           <td>6.2&Prime; AMOLED 1&ndash;120Hz</td>
@@ -263,6 +285,8 @@
         <tr>
           <td class="row-label">Weight</td>
           <td>198g</td>
+          <td>179g</td>
+          <td>190g</td>
           <td>211&ndash;215g <span class="badge badge-weak">Heaviest</span></td>
           <td>204g</td>
           <td>167g <span class="badge badge-best">Lightest</span></td>
@@ -271,6 +295,8 @@
         <tr>
           <td class="row-label">Battery</td>
           <td>5,000mAh</td>
+          <td>5,000mAh</td>
+          <td>4,900mAh</td>
           <td>7,300mAh <span class="badge badge-best">Best</span></td>
           <td>4,970mAh</td>
           <td>4,300mAh <span class="badge badge-weak">Smallest</span></td>
@@ -279,6 +305,8 @@
         <tr>
           <td class="row-label">Charging</td>
           <td>45W wired / no wireless <span class="badge badge-weak">No wireless</span></td>
+          <td>45W wired / no wireless <span class="badge badge-weak">No wireless</span></td>
+          <td>45W wired / 15W wireless</td>
           <td>120W wired / 50W wireless <span class="badge badge-best">Fastest</span></td>
           <td>23W wired / Qi2</td>
           <td>25W wired / 15W wireless</td>
@@ -287,6 +315,8 @@
         <tr>
           <td class="row-label">Cameras</td>
           <td>50MP + 12MP + 5MP triple</td>
+          <td>50MP + 13MP + 5MP triple</td>
+          <td>50MP + 12MP + 8MP triple</td>
           <td>50MP + 50MP + 50MP triple</td>
           <td>48MP + 13MP + 10.8MP triple</td>
           <td>50MP + 12MP + 10MP triple</td>
@@ -295,6 +325,8 @@
         <tr>
           <td class="row-label">OS Updates</td>
           <td>6 years Android + security</td>
+          <td>6 years Android + security</td>
+          <td>7 years <span class="badge badge-best">Best</span></td>
           <td>4yr Android / 6yr security <span class="badge badge-weak">Shortest</span></td>
           <td>7 years <span class="badge badge-best">Best</span></td>
           <td>7 years <span class="badge badge-best">Best</span></td>
@@ -303,6 +335,8 @@
         <tr>
           <td class="row-label">IP Rating</td>
           <td>IP67</td>
+          <td>IP67</td>
+          <td>IP68</td>
           <td>IP66 / IP68 / IP69 <span class="badge badge-best">Best</span></td>
           <td>IP68</td>
           <td>IP68</td>
@@ -311,6 +345,8 @@
         <tr>
           <td class="row-label">Software</td>
           <td>One UI 7 (heavier skin)</td>
+          <td>One UI 8.5 / Android 16</td>
+          <td>One UI 8 (heavier skin)</td>
           <td>OxygenOS (heavier skin)</td>
           <td>Stock Android <span class="badge badge-best">Cleanest</span></td>
           <td>One UI 7 (heavier skin)</td>
@@ -318,6 +354,8 @@
 
         <tr>
           <td class="row-label">Unlocked</td>
+          <td><span class="icon-yes">✓</span></td>
+          <td><span class="icon-yes">✓</span></td>
           <td><span class="icon-yes">✓</span></td>
           <td><span class="icon-yes">✓</span></td>
           <td><span class="icon-yes">✓</span></td>
@@ -335,6 +373,14 @@
       <div class="verdict-card a56">
         <h3 class="a56-color">Galaxy A56 5G — Budget Pick</h3>
         <p>Half the price of the competition at ~€419. Good AMOLED display, 6-year updates, and IP67. The Exynos 1580 chip is a significant step down, and there's no wireless charging — but hard to argue with the value if budget is the priority.</p>
+      </div>
+      <div class="verdict-card a57">
+        <h3 class="a57-color">Galaxy A57 5G — Skip</h3>
+        <p>Newer chip, lighter at 179g, and ships with Android 16. But at €619 for 8GB/256GB with no wireless charging and IP67 only, it's €200 more than the A56 for marginal gains. The A56 will get Android 16 anyway. Hard to recommend.</p>
+      </div>
+      <div class="verdict-card fe">
+        <h3 class="fe-color">Galaxy S25 FE — Questionable Value</h3>
+        <p>Flagship Exynos 2400 chip, 7-year updates, IP68, and 190g. Solid specs on paper. But at €839 for 8GB/256GB, it's only €26 less than the OnePlus 15 which gives you double the RAM, double the storage, and far faster charging. Hard to justify.</p>
       </div>
       <div class="verdict-card op">
         <h3 class="op-color">OnePlus 15 — Best Value Flagship</h3>
@@ -356,6 +402,8 @@
     <h2 style="color:#fff; font-size:1rem; font-weight:700; margin-bottom:16px; text-transform:uppercase; letter-spacing:0.05em;">Where to Buy</h2>
     <div class="links-row">
       <a class="buy-link a56" href="https://www.currys.ie/products/samsung-galaxy-a56-5g-256-gb-awesome-graphite-10278404.html" target="_blank" rel="noopener">Galaxy A56 → Currys.ie &nbsp;~€419</a>
+      <a class="buy-link a57" href="https://www.harveynorman.ie/mobile-phones/sim-free-phones/samsung-galaxy-a57-8gb-256gb-5g-awesome-navy.html" target="_blank" rel="noopener">Galaxy A57 → Harvey Norman &nbsp;€619</a>
+      <a class="buy-link fe" href="https://www.harveynorman.ie/mobile-phones/sim-free-phones/samsung-galaxy-s25-fe-256gb-5g.html" target="_blank" rel="noopener">S25 FE → Harvey Norman &nbsp;€839</a>
       <a class="buy-link op" href="https://www.amazon.ie/dp/B0FSDPR9MD" target="_blank" rel="noopener">OnePlus 15 → Amazon.ie &nbsp;€865</a>
       <a class="buy-link px" href="https://www.currys.ie/phones/mobile-phones/mobile-phones/pixel-10" target="_blank" rel="noopener">Pixel 10 → Currys.ie &nbsp;€919</a>
       <a class="buy-link ss" href="https://shop.samsung.com/ie/galaxy-s26-black-256gb" target="_blank" rel="noopener">Galaxy S26 → Samsung.ie &nbsp;€1,019</a>
